@@ -29,6 +29,59 @@ The service follows **Clean Architecture** principles:
 * **Report Layer**: Formatting reconciliation results
 * **CLI Layer**: Command-line interface
 
+## Repository Layer Concurrent Processing
+
+The reconciliation service includes specialized concurrent data loading capabilities at the repository layer. This feature leverages Go's goroutines and channels to read and process CSV data concurrently, improving performance when working with large transaction files.
+
+### Concurrent Repository Methods
+The system implements dedicated methods for concurrent data access:
+```go
+// Standard sequential processing
+txns, err := repo.GetTransactionsInRange(startDate, endDate)
+
+// Parallel processing for improved performance
+txns, err := repo.GetTransactionsInRangeConcurrently(startDate, endDate)
+```
+
+### How Repository Concurrency Works
+The concurrent implementation divides CSV processing into separate stages that run concurrently:
+
+* A coordinator goroutine reads CSV records and groups them into batches
+* Multiple worker goroutines process these batches simultaneously
+* Each worker independently handles parsing, validation, and filtering
+* A collector aggregates processed transactions from all workers
+
+This approach maintains the same interface and behavior as the standard methods while providing significant performance improvements.
+
+### Benefits of Repository Concurrency
+
+* Faster Data Loading: Processes large files much more quickly by utilizing multiple CPU cores
+* Memory Efficiency: Controls memory usage through batch processing rather than loading entire files
+* Resilient Processing: Continues processing valid records even when encountering occasional invalid data
+* Same Interface: Requires no changes to higher-level services that consume repository data
+
+### When To Use Concurrent Repository Methods
+The concurrent repository methods are particularly beneficial when:
+
+* Processing files with 10,000+ transactions
+* Working with multiple bank statements simultaneously
+* Running on multi-core systems
+* Batch reconciliations need to complete quickly
+
+For smaller datasets or simpler use cases, the standard methods remain available.
+
+
+### Implementation Details
+The concurrent repository implementation uses several Go concurrency patterns:
+
+* Worker pools to distribute processing tasks
+* Buffered channels to manage work queues
+* WaitGroups to coordinate completion
+* Non-blocking error channels for error propagation
+
+The repository layer preserves all business validation rules and date filtering logic while enabling significant performance gains through parallel processing.
+
+
 ## Installation
 
 ```bash
