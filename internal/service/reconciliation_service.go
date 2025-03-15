@@ -39,7 +39,7 @@ func (s *ReconciliationService) Reconcile(startDate, endDate time.Time) (domain.
 	effectiveEndDate := endDate.AddDate(0, 0, s.dateBuffer)
 
 	// Get system txns
-	systemTxns, err := s.systemRepo.GetTransactionsInRange(effectiveStartDate, effectiveEndDate)
+	systemTxns, err := s.systemRepo.GetTransactionsInRangeConcurrently(effectiveStartDate, effectiveEndDate)
 	if err != nil {
 		return domain.ReconciliationResult{}, fmt.Errorf("fetching system transactions: %w", err)
 	}
@@ -47,7 +47,7 @@ func (s *ReconciliationService) Reconcile(startDate, endDate time.Time) (domain.
 	// Get bank txns -- from all bank repositories
 	var allBankTxns []domain.BankTransaction
 	for _, repo := range s.bankRepos {
-		bankTxns, err := repo.GetTransactionsInRange(effectiveStartDate, effectiveEndDate)
+		bankTxns, err := repo.GetTransactionsInRangeConcurrently(effectiveStartDate, effectiveEndDate)
 		if err != nil {
 			return domain.ReconciliationResult{}, fmt.Errorf("fetching bank transactions: %w", err)
 		}

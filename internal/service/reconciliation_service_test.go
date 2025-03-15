@@ -18,12 +18,20 @@ func (m *MockSystemRepository) GetTransactionsInRange(startDate, endDate time.Ti
 	return m.transactions, nil
 }
 
+func (m *MockSystemRepository) GetTransactionsInRangeConcurrently(startDate, endDate time.Time) ([]domain.SystemTransaction, error) {
+	return m.transactions, nil
+}
+
 type MockBankRepository struct {
 	transactions []domain.BankTransaction
 	BankID       string
 }
 
 func (m *MockBankRepository) GetTransactionsInRange(startDate, endDate time.Time) ([]domain.BankTransaction, error) {
+	return m.transactions, nil
+}
+
+func (m *MockBankRepository) GetTransactionsInRangeConcurrently(startDate, endDate time.Time) ([]domain.BankTransaction, error) {
 	return m.transactions, nil
 }
 
